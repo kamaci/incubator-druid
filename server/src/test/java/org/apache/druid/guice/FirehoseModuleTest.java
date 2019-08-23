@@ -19,11 +19,12 @@
 
 package org.apache.druid.guice;
 
-import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.AnnotatedClassResolver;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.google.common.reflect.ClassPath;
 import org.apache.druid.data.input.FirehoseFactory;
@@ -64,10 +65,9 @@ public class FirehoseModuleTest
 
   private static Set<Class> getFirehoseFactorySubtypeClasses(ObjectMapper objectMapper)
   {
-    Class parentClass = FirehoseFactory.class;
-    MapperConfig config = objectMapper.getDeserializationConfig();
-    AnnotationIntrospector annotationIntrospector = config.getAnnotationIntrospector();
-    AnnotatedClass ac = AnnotatedClass.constructWithoutSuperTypes(parentClass, annotationIntrospector, config);
+    Class<FirehoseFactory> parentClass = FirehoseFactory.class;
+    MapperConfig<DeserializationConfig> config = objectMapper.getDeserializationConfig();
+    AnnotatedClass ac = AnnotatedClassResolver.resolve(config, config.constructType(parentClass), config);
     Collection<NamedType> subtypes = objectMapper.getSubtypeResolver().collectAndResolveSubtypesByClass(config, ac);
     Assert.assertNotNull(subtypes);
     return subtypes.stream()
